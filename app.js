@@ -535,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const maxWidth = parseInt(document.getElementById('maxWidth').value);
                 const colorCount = parseInt(document.getElementById('colorCount').value);
-                const outputStyle = document.getElementById('outputStyle').value);
+                const outputStyle = document.getElementById('outputStyle').value;
 
                 // 获取图片尺寸
                 const originalCanvas = document.getElementById('originalCanvas');
