@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼豆图纸转换器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        select, input[type="number"] {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+        }
+        
+        .result-section.show {
+            display: block;
+        }
+        
+        .canvas-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .canvas-wrapper {
+            text-align: center;
+        }
+        
+        .canvas-wrapper h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        canvas {
+            max-width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .color-palette {
+            margin-top: 20px;
+        }
+        
+        .color-palette h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .color-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-right: 10px;
+            border: 2px solid #ddd;
+        }
+        
+        .color-info {
+            flex: 1;
+        }
+        
+        .color-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .color-count {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .stats {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            margin-top: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 拼豆图纸转换器</h1>
+        
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <p style="font-size: 48px; margin-bottom: 10px;">📷</p>
+                <p style="color: #666;">点击或拖拽上传图片</p>
+                <p style="font-size: 12px; color: #999; margin-top: 10px;">支持 JPG、PNG、GIF 格式</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>拼豆尺寸</label>
+                    <select id="beadSize">
+                        <option value="5">5mm（标准）</option>
+                        <option value="2.6">2.6mm（迷你）</option>
+                        <option value="10">10mm（大号）</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>最大宽度（格数）</label>
+                    <input type="number" id="maxWidth" value="50" min="10" max="200">
+                </div>
+                
+                <div class="control-group">
+                    <label>颜色数量</label>
+                    <select id="colorCount">
+                        <option value="6">6 色</option>
+                        <option value="12" selected>12 色</option>
+                        <option value="24">24 色</option>
+                        <option value="36">36 色</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>输出样式</label>
+                    <select id="outputStyle">
+                        <option value="grid">网格</option>
+                        <option value="dots">圆点</option>
+                        <option value="both">两者</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button id="convertBtn" disabled>开始转换</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <p>🔄 正在处理中，请稍候...</p>
+        </div>
+        
+        <div class="result-section" id="resultSection">
+            <div class="stats">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statWidth">0</div>
+                        <div class="stat-label">宽度（格）</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statHeight">0</div>
+                        <div class="stat-label">高度（格）</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statBeads">0</div>
+                        <div class="stat-label">总豆数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statColors">0</div>
+                        <div class="stat-label">使用颜色</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <h3>原始图片</h3>
+                    <canvas id="originalCanvas"></canvas>
+                </div>
+                <div class="canvas-wrapper">
+                    <h3>拼豆图纸</h3>
+                    <canvas id="patternCanvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="color-palette">
+                <h3>🎨 颜色清单</h3>
+                <div class="color-grid" id="colorGrid"></div>
+            </div>
+            
+            <button class="download-btn" id="downloadBtn">下载图纸</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
