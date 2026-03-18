@@ -425,6 +425,27 @@ class PerlerConverter {
         return brightness > 128 ? '#000000' : '#ffffff';
     }
 
+    // 计算边框颜色（根据背景亮度决定用深色还是浅色）
+    getBorderColor(r, g, b) {
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // 深色背景用浅色边框，浅色背景用深色边框
+        return brightness > 128 ? '#555555' : '#cccccc';
+    }
+
+    // 绘制带描边的文字
+    drawTextWithStroke(ctx, text, x, y, fillColor, strokeColor = '#000000', strokeWidth = 2) {
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // 先画描边
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = strokeWidth;
+        ctx.strokeText(text, x, y);
+        // 再画填充
+        ctx.fillStyle = fillColor;
+        ctx.fillText(text, x, y);
+    }
+
     // 获取列字母标签（A, B, C, ..., Z, AA, AB, ...）
     getColumnLabel(col) {
         let label = '';
@@ -491,12 +512,17 @@ class PerlerConverter {
                     ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
                     ctx.fillRect(x, y, cellSize, cellSize);
                     
-                    // 边框 - 每 5 格加粗左边和上边
+                    // 边框 - 每 5 格加粗左边和上边，颜色根据背景动态调整
                     const isThickRow = (row % 5 === 0);
                     const isThickCol = (col % 5 === 0);
                     
+                    // 计算亮度用于边框颜色
+                    const brightness = (color.r * 299 + color.g * 587 + color.b * 114) / 1000;
+                    const borderColor = this.getBorderColor(color.r, color.g, color.b);
+                    const thickBorderColor = brightness > 128 ? '#333333' : '#eeeeee';
+                    
                     // 细线边框（默认）
-                    ctx.strokeStyle = '#999';
+                    ctx.strokeStyle = borderColor;
                     ctx.lineWidth = 1;
                     ctx.strokeRect(x, y, cellSize, cellSize);
                     
@@ -505,7 +531,7 @@ class PerlerConverter {
                         ctx.beginPath();
                         ctx.moveTo(x, y);
                         ctx.lineTo(x, y + cellSize);
-                        ctx.strokeStyle = '#333';
+                        ctx.strokeStyle = thickBorderColor;
                         ctx.lineWidth = 3;
                         ctx.stroke();
                     }
@@ -515,20 +541,16 @@ class PerlerConverter {
                         ctx.beginPath();
                         ctx.moveTo(x, y);
                         ctx.lineTo(x + cellSize, y);
-                        ctx.strokeStyle = '#333';
+                        ctx.strokeStyle = thickBorderColor;
                         ctx.lineWidth = 3;
                         ctx.stroke();
                     }
                     
-                    // 绘制色号文字
+                    // 绘制色号文字（带描边）
                     const textColor = this.getTextColor(color.r, color.g, color.b);
-                    ctx.fillStyle = textColor;
-                    ctx.font = 'bold 9px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    // 只显示色号前缀（如 A01, B12）
+                    const textStrokeColor = textColor === '#000000' ? '#ffffff' : '#000000';
                     const colorCode = color.name.split(' ')[0];
-                    ctx.fillText(colorCode, x + cellSize / 2, y + cellSize / 2);
+                    this.drawTextWithStroke(ctx, colorCode, x + cellSize / 2, y + cellSize / 2, textColor, textStrokeColor, 2);
                 } else if (style === 'dots') {
                     // 圆点样式 - 圆形
                     ctx.beginPath();
