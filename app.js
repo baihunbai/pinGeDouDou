@@ -491,41 +491,34 @@ class PerlerConverter {
                     ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
                     ctx.fillRect(x, y, cellSize, cellSize);
                     
-                    // 边框 - 每 5 格加粗
+                    // 边框 - 每 5 格加粗左边和上边
                     const isThickRow = (row % 5 === 0);
                     const isThickCol = (col % 5 === 0);
                     
-                    // 绘制四条边
-                    ctx.lineWidth = 1;
+                    // 细线边框（默认）
                     ctx.strokeStyle = '#999';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, cellSize, cellSize);
                     
-                    // 上边
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x + cellSize, y);
-                    ctx.strokeStyle = isThickRow ? '#333' : '#999';
-                    ctx.lineWidth = isThickRow ? 3 : 1;
-                    ctx.stroke();
+                    // 每 5 格加粗左边线
+                    if (isThickCol) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x, y + cellSize);
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
                     
-                    // 左边
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    ctx.lineTo(x, y + cellSize);
-                    ctx.strokeStyle = isThickCol ? '#333' : '#999';
-                    ctx.lineWidth = isThickCol ? 3 : 1;
-                    ctx.stroke();
-                    
-                    // 下边
-                    ctx.beginPath();
-                    ctx.moveTo(x, y + cellSize);
-                    ctx.lineTo(x + cellSize, y + cellSize);
-                    ctx.stroke();
-                    
-                    // 右边
-                    ctx.beginPath();
-                    ctx.moveTo(x + cellSize, y);
-                    ctx.lineTo(x + cellSize, y + cellSize);
-                    ctx.stroke();
+                    // 每 5 格加粗上边线
+                    if (isThickRow) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(x + cellSize, y);
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
                     
                     // 绘制色号文字
                     const textColor = this.getTextColor(color.r, color.g, color.b);
